@@ -24,6 +24,7 @@ Qt.include("tile.js");
 Qt.include("tilelist.js");
 Qt.include("layout.js");
 Qt.include("spirallayout.js");
+Qt.include("spiraltoplayout.js");
 Qt.include("halflayout.js");
 Qt.include("bladelayout.js");
 Qt.include("tiling.js");
@@ -48,7 +49,8 @@ function TilingManager() {
     this.availableLayouts = [
         HalfLayout,
         BladeLayout,
-        SpiralLayout/*,
+        SpiralLayout,
+	SpiralTopLayout/*,
                       ZigZagLayout,
                       ColumnLayout,
                       RowLayout,
