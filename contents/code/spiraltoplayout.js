@@ -31,7 +31,7 @@ function SpiralTopLayout(screenRectangle) {
     this.master = 0;
 };
 
-SpiralTopLayout.name = "SpiralTop";
+SpiralTopLayout.name = "SpiralTopLayout";
 // TODO: Add an image for the layout switcher
 SpiralTopLayout.image = null;
 
