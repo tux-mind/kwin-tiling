@@ -14,7 +14,7 @@
 		  <default>false</default>
 		</entry>
 		<entry name="layouts" type="String">
-		  <label>The layout configuration in "desktop:layoutname" format, separated with commas. Negative desktop denotes disabled tiling by default</label>
+		  <label>The layout configuration in "desktop:[screen:]layoutname" format, separated with commas. Negative desktop/screen denotes disabled tiling by default</label>
 		  <default></default>
 		</entry>
 		<entry name="userActive" type="bool">

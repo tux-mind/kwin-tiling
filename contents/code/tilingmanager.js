@@ -50,7 +50,7 @@ function TilingManager() {
         HalfLayout,
         BladeLayout,
         SpiralLayout,
-	SpiralTopLayout/*,
+	    SpiralTopLayout/*,
                       ZigZagLayout,
                       ColumnLayout,
                       RowLayout,
@@ -95,22 +95,26 @@ function TilingManager() {
      * This is overridden by per-desktop settings
      */
     this.userActive = KWin.readConfig("userActive", true);
-    
+
     // Read layout configuration
-    // Format: desktop:layoutname[,...]
+    // Format: desktop:[screen:]layoutname[,...]
     // Negative desktop number deactivates tiling
     this.layoutConfig = [];
     var lC = String(KWin.readConfig("layouts", "")).replace(/ /g,"").split(",");
     for (var i = 0; i < lC.length; i++) {
-        var layout = lC[i].split(":");
+        var parts = lC[i].split(":");
+        var haveScreen = !isNaN(parts[1]);
         try {
-            var desktop = parseInt(layout[0]);
+            var desktop = parseInt(parts[0]);
+            if (haveScreen) {
+                var screen = parseInt(parts[1]);
+            }
         } catch (err) {
             continue;
         }
         var l = this.defaultLayout;
         for (var j = 0; j < this.availableLayouts.length; j++) {
-            if (this.availableLayouts[j].name == layout[1]) {
+            if (this.availableLayouts[j].name == parts[haveScreen ? 2 : 1]) {
                 l = this.availableLayouts[j];
                 break;
             }
@@ -124,11 +128,14 @@ function TilingManager() {
         if (desktop == 0) {
             this.defaultLayout = l;
         }
-        desktop = desktop;
         var desktoplayout = {};
         desktoplayout.desktop = desktop;
         desktoplayout.layout = l;
         desktoplayout.tiling = tiling;
+        desktoplayout.haveScreen = haveScreen;
+        if (haveScreen) {
+            desktoplayout.screen = screen;
+        }
         this.layoutConfig.push(desktoplayout);
     }
 
@@ -146,10 +153,6 @@ function TilingManager() {
         self._onTileRemoved(tile);
     });
 
-    // var existingClients = workspace.clientList();
-    // for (var i=0; i<existingClients.length; i++) {
-    //     self.tiles.addClient(existingClients[i]);
-    // }
     // Activate the visible layouts
     // Do it after adding the existingClients to prevent unnecessary geometry changes
     this._getLayouts(workspace.currentDesktop, null).forEach(function(layout) {
@@ -422,6 +425,12 @@ function TilingManager() {
                                   }
                               });
     }
+
+    var existingClients = workspace.clientList();
+    for (var i = 0; i < existingClients.length; i++) {
+        this.tiles.addClient(existingClients[i]);
+    }
+
     // registerUserActionsMenu(function(client) {
     //     return {
     //         text : "Toggle floating",
@@ -447,14 +456,24 @@ TilingManager.prototype._createDefaultLayouts = function(desktop) {
     var tiling = false;
     var userConfig = false;
     for (var i = 0; i < this.layoutConfig.length; i++) {
-        if (this.layoutConfig[i].desktop == desktop) {
-            userConfig = true;
-            layout = this.layoutConfig[i].layout;
-            tiling = this.layoutConfig[i].tiling;
-            this.layoutConfig.splice(i,1);
+        var lc = this.layoutConfig[i];
+        if (lc.desktop !== desktop) {
+            continue;
         }
+        if (lc.haveScreen) {
+            if (lc.screen < this.screenCount) {
+                screenLayouts[lc.screen] = new Tiling(lc.layout, desktop, lc.screen);
+                screenLayouts[lc.screen].userActive = lc.tiling;
+            }
+            continue;
+        }
+        userConfig = true;
+        tiling = lc.tiling;
+        layout = lc.layout;
+        this.layoutConfig.splice(i, 1);
     }
     for (var j = 0; j < this.screenCount; j++) {
+        if (screenLayouts[j] !== undefined) continue;
         screenLayouts[j] = new Tiling(layout, desktop, j);
         // Either the default is to tile and the desktop hasn't been configured,
         // or the desktop has been set to tile (in which case the default is irrelevant)
