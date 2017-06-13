@@ -30,7 +30,13 @@ Item {
     Component.onCompleted: {
         console.log("Starting tiling");
         // Initialize tiling
-        tiling = new Tiling.TilingManager();
+        try {
+            tiling = new Tiling.TilingManager();
+        } catch(err) {
+          console.error(err);
+          console.error(err.stack);
+          throw err;
+        }
         // Attach resized here so we can give it a timer (since QTimer isn't exported to QML)
         /* tiling.resized.connect(function() { */
         /*     timer.start(); */
